@@ -68,3 +68,64 @@ Any of the 3 category identifiers can be used: Category_Id, Category_Code, Edit_
     }
 }
 ```
+
+### WishListItemAndOptions_InsertOrUpdate
+
+This function allows you to add a product to a customer's wishlist
+
+**Request Body Parameters**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| Module_Function | String | WishListItemAndOptions_InsertOrUpdate |
+| Customer_Login | String | Customer Login to use. |
+| Product_Code | String | Product code to use. |
+| Quantity | Number | Quantity of product you wish to add. |
+| Wishlist_ID | Number | _Optional_ Wishlist ID. |
+| Attributes | Array | Optional, unless the product requires attributes. |
+
+```
+Attributes is an array with the following parameters for each attribute:
+code
+template_code
+value
+```
+
+**Response Parameters**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| success | Number | 1 or 0. |
+
+**Example Request**
+
+```json
+{  
+    "Store_Code":"test",
+    "Function":"Module",
+    "Module_Code": "prosrvcs_json_api_ext",
+    "Module_Function": "WishListItemAndOptions_InsertOrUpdate",
+	"Customer_Login": "some-customer-login",
+	"Product_Code": "some-product-code",
+	"Wishlist_ID": 1,
+	"Quantity": 1,
+	"Attributes": [
+		{
+			"code": "color",
+			"value": "white"
+		},
+		{
+			"code": "size",
+			"value": "M"
+		}
+	]
+}
+```
+
+**Example Resonse**
+
+```json
+{
+    "success": 1,
+}
+```
