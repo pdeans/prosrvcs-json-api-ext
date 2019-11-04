@@ -84,6 +84,7 @@ This function allows you to add a product to a customer's wishlist
 | Products | Array | Array of Products. Please see **Products Array Table** |
 
 **Wishlist Object**
+
 | Name | Type | Description |
 | --- | --- | --- |
 | Title | String | _Optional_ Title of Wishlist to create. Defaults to Wishlist Settings in the Miva Admin. |
@@ -91,7 +92,9 @@ This function allows you to add a product to a customer's wishlist
 | Shared | Boolean | _Optional_ If the Wishlist is shared (public), set to 1. Defaults to 0. |
 
 **Products Array**
+
 PLEASE NOTE: One of Product_Code, Product_ID, or Product_SKU is required
+
 | Name | Type | Description |
 | --- | --- | --- |
 | Product_Code | String | This is the product code of the product you wish to use. |
@@ -102,6 +105,7 @@ PLEASE NOTE: One of Product_Code, Product_ID, or Product_SKU is required
 | Attributes | Array | Array of Attributes. Please see **Product Attributes Array Table** |
 
 **Products Attributes Array**
+
 | Name | Type | Description |
 | --- | --- | --- |
 | template_code | String | _optional_ Template code for attribute. |
