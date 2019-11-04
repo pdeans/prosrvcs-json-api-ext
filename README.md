@@ -126,6 +126,6 @@ value
 
 ```json
 {
-    "success": 1,
+    "success": 1
 }
 ```
