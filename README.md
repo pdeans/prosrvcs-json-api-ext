@@ -79,17 +79,35 @@ This function allows you to add a product to a customer's wishlist
 | --- | --- | --- |
 | Module_Function | String | WishListItemAndOptions_InsertOrUpdate |
 | Customer_Login | String | Customer Login to use. |
-| Product_Code | String | Product code to use. |
-| Quantity | Number | Quantity of product you wish to add. |
+| Wishlist | Object | _Optional_ Wishlist Object. Please see **Wishlist Object Table**. |
 | Wishlist_ID | Number | _Optional_ Wishlist ID. |
-| Attributes | Array | Optional, unless the product requires attributes. |
+| Products | Array | Array of Products. Please see **Products Array Table** |
 
-```
-Attributes is an array with the following parameters for each attribute:
-code
-template_code
-value
-```
+**Wishlist Object**
+| Name | Type | Description |
+| --- | --- | --- |
+| Title | String | _Optional_ Title of Wishlist to create. Defaults to Wishlist Settings in the Miva Admin. |
+| Notes | String | _Optional_ Notes of Wishlist getting created. Defaults to empty. |
+| Shared | Boolean | _Optional_ If the Wishlist is shared (public), set to 1. Defaults to 0. |
+
+**Products Array**
+PLEASE NOTE: One of Product_Code, Product_ID, or Product_SKU is required
+| Name | Type | Description |
+| --- | --- | --- |
+| Product_Code | String | This is the product code of the product you wish to use. |
+| Product_ID | Number | This is the product ID of the product you wish to use. |
+| Product_SKU | String | This is the product Sku of the product you wish to use. |
+| Quantity | Number | Quantity of Product to add to the wishlist. |
+| Notes | String | _Optional_ Notes of wishlist item getting inserted. Defaults to empty. |
+| Attributes | Array | Array of Attributes. Please see **Product Attributes Array Table** |
+
+**Products Attributes Array**
+| Name | Type | Description |
+| --- | --- | --- |
+| template_code | String | _optional_ Template code for attribute. |
+| code | Number | Code of the attribute being used. |
+| value | String | Value of the attribute being used. Always use the attribute option code over the prompt. |
+
 
 **Response Parameters**
 
@@ -105,20 +123,31 @@ value
     "Function":"Module",
     "Module_Code": "prosrvcs_json_api_ext",
     "Module_Function": "WishListItemAndOptions_InsertOrUpdate",
-	"Customer_Login": "some-customer-login",
-	"Product_Code": "some-product-code",
-	"Wishlist_ID": 1,
-	"Quantity": 1,
-	"Attributes": [
-		{
-			"code": "color",
-			"value": "white"
-		},
-		{
-			"code": "size",
-			"value": "M"
-		}
-	]
+    "Customer_Login": "some-customer-login",
+    "WishList": {
+        "Title": "Some Title",
+        "Notes": "Notes",
+        "Public": 1
+    },
+    "Wishlist_ID": 1,
+    "Products": [
+        {
+            "Product_Code": "some-code",
+            "Quantity": 1,
+            "Notes": "Some Notes for this Product",
+            "Attributes": [
+                {
+                    "code": "color",
+                    "value": "white"
+                },
+                {
+                    "code": "size",
+                    "value": "M"
+                }
+            ]
+
+        }
+    ]
 }
 ```
 
