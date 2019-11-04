@@ -2,23 +2,25 @@
 	<MvASSIGN NAME = "l.module:code"        VALUE = "prosrvcs_json_api_ext">
 	<MvASSIGN NAME = "l.module:name"        VALUE = "Miva Professional Services JSON API Extensions">
 	<MvASSIGN NAME = "l.module:provider"    VALUE = "Miva Professional Services">
-	<MvASSIGN NAME = "l.module:version"     VALUE = "1.0000">
+	<MvASSIGN NAME = "l.module:version"     VALUE = "1.0001">
 	<MvASSIGN NAME = "l.module:api_ver"     VALUE = "9.12">
 	<MvASSIGN NAME = "l.module:description" VALUE = "Use this module for extending the list of available functions for the Miva JSON API. See the list of available extension functions at https://github.com/pdeans/prosrvcs-json-api-ext.">
 	<MvASSIGN NAME = "l.module:features"    VALUE = "json_api">
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "Module_JSON_API" PARAMETERS = "module var, function" STANDARDOUTPUTLEVEL = "">
-	<MvASSIGN NAME="l.ok" VALUE="{ miva_output_header( 'Content-Type', 'application/json' ) }" >
-
 	<MvIF EXPR = "{ l.function EQ 'Category_Load_Canonical' }">
 		<MvFUNCTIONRETURN VALUE = "{ JSON_Category_Load_Canonical( l.module ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ l.function EQ 'WishListItemAndOptions_InsertOrUpdate' }">
+		<MvFUNCTIONRETURN VALUE = "{ JSON_WishListItemAndOptions_InsertOrUpdate( l.module ) }">
 	</MvIF>
 
 	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'MOD-PSJ-0001', 'Invalid function' ) }">
 </MvFUNCTION>
 
-<MvFUNCTION NAME="JSON_Category_Load_Canonical" PARAMETERS="module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+<MvFUNCTION NAME="JSON_Category_Load_Canonical" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
 	<MvIF EXPR = "{ g.Session_Type NE 'api' }">								<MvFUNCTIONRETURN>																	</MvIF>
 	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }">				<MvFUNCTIONRETURN>																	</MvIF>
 	<MvIF EXPR = "{ NOT [ g.Module_Admin ].CanI( 'CTGY', 1, 0, 0, 0 ) }">	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Access_Denied() }">	</MvIF>
@@ -37,4 +39,165 @@
 		"canonical_uri": "<MvEVAL EXPR = "{ [ g.Module_JSON ].JSON_Encode( l.canonical_uri:uri ) }">"
 	}
 	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_End() }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "JSON_WishListItemAndOptions_InsertOrUpdate" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+	<MvIF EXPR = "{ g.Session_Type NE 'api' }">					<MvFUNCTIONRETURN> </MvIF>
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Store_Open() }">	<MvFUNCTIONRETURN> </MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Feature_CUS_JSON ].JSON_Customer_Load( l.customer ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Input_Number( 'O', 'Wishlist_ID', l.wishlist_id,	-1, -1 ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_InputErrors() }">
+	</MvIF>
+
+	<MvIF EXPR = "{ l.wishlist_id GT 0 }">
+		<MvIF EXPR = "{ NOT [ g.Module_Feature_WSH_DB ].WishList_Load_ID_Cached( l.wishlist_id, l.wishlist ) }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'MOD-PSJ-0002', 'Invalid wish list' ) }">
+		<MvELSEIF EXPR = "{ l.wishlist:cust_id NE l.customer:id }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( 'MOD-PSJ-0003', 'Invalid wish list' ) }">
+		</MvIF>
+	<MvELSE>
+		<MvIF EXPR = "{ [ g.Module_JSON ].JSON_Input_Exists( 'Wishlist' ) }">
+			<MvIF EXPR = "{ NOT [ g.Module_Feature_CUS_DB ].CustomerSettings_Load_Cached( l.customersettings ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+			</MvIF>
+
+			<MvASSIGN NAME = "l.wishlist" 			VALUE = "">
+			<MvASSIGN NAME = "l.wishlist:cust_id" 	VALUE = "{ l.customer:id }">
+			<MvASSIGN NAME = "l.wishlist:title" 	VALUE = "{ l.customersettings:def_wshlst }">
+			<MvASSIGN NAME = "l.wishlist:notes" 	VALUE = "">
+			<MvASSIGN NAME = "l.wishlist:shared" 	VALUE = 0>
+
+			<MvIF EXPR = "{ [ g.Module_JSON ].JSON_Input_Retrieve_Raw( 'Wishlist', l.wishlist_fields ) }">
+				<MvIF EXPR = "{ NOT ISNULL l.wishlist_fields:title}">
+					<MvASSIGN NAME = "l.wishlist:title"			VALUE = "{ l.wishlist_fields:title }">
+				</MvIF>
+
+				<MvIF EXPR = "{ NOT ISNULL l.wishlist_fields:notes }">
+					<MvASSIGN NAME = "l.wishlist:notes"			VALUE = "{ l.wishlist_fields:notes }">
+				</MvIF>
+
+				<MvIF EXPR = "{ NOT ISNULL l.wishlist_fields:shared }">
+					<MvASSIGN NAME = "l.wishlist_fields:shared"	VALUE = "{ [ g.Module_Admin ].Trim_Boolean( l.wishlist_fields:shared ) }">
+					<MvASSIGN NAME = "l.wishlist:shared"		VALUE = "{ l.wishlist_fields:shared }">
+				</MvIF>
+			</MvIF>
+
+			<MvIF EXPR = "{ NOT [ g.Module_Feature_WSH_DB ].WishList_Insert( l.wishlist ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+			</MvIF>
+		<MvELSE>
+			<MvASSIGN NAME = "l.wishlist_count" VALUE = "{ [ g.Module_Feature_WSH_DB ].WishListList_Load_Customer( l.customer:id, l.wishlists ) }">
+
+			<MvIF EXPR = "{ l.wishlist_count GT 0 }">
+				<MvASSIGN NAME = "l.wishlist" 			VALUE = "{ l.wishlists[ 1 ] }">
+			<MvELSE>
+				<MvIF EXPR = "{ NOT [ g.Module_Feature_CUS_DB ].CustomerSettings_Load_Cached( l.customersettings ) }">
+					<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+				</MvIF>
+
+				<MvASSIGN NAME = "l.wishlist" 			VALUE = "">
+				<MvASSIGN NAME = "l.wishlist:cust_id" 	VALUE = "{ l.customer:id }">
+				<MvASSIGN NAME = "l.wishlist:title" 	VALUE = "{ l.customersettings:def_wshlst }">
+				<MvASSIGN NAME = "l.wishlist:notes" 	VALUE = "">
+				<MvASSIGN NAME = "l.wishlist:shared" 	VALUE = 0>
+
+				<MvIF EXPR = "{ NOT [ g.Module_Feature_WSH_DB ].WishList_Insert( l.wishlist ) }">
+					<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+				</MvIF>
+			</MvIF>
+		</MvIF>
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Input_Exists( 'Products' ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_FieldError( 'Products', 'Missing required parameter' ) }">
+	</MvIF>
+
+	<MvFOREACH ITERATOR = "l.product" ARRAY = "l.products" COUNT = "{ [ g.Module_JSON ].JSON_Input_Array( 'Products', l.products ) }">
+		<MvASSIGN NAME = "l.notes"							VALUE = "">
+		<MvASSIGN NAME = "l.product_attributes"				VALUE = "">
+		<MvASSIGN NAME = "l.product_attribute_count"		VALUE = 0>
+
+		<MvIF EXPR = "{	NOT [ g.Module_JSON ].JSON_Input_Element_Number(	l.product, 'R', 'Quantity', 	l.quantity, -1, -1 )	OR
+						NOT [ g.Module_JSON ].JSON_Input_Element_Text(		l.product, 'O', 'Notes',		l.notes )				OR 
+						NOT [ g.Module_JSON ].JSON_Product_Load_Element(	l.product, 						l.wishlist_product ) }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_InputErrors() }">
+		</MvIF>
+
+		<MvFOREACH ITERATOR = "l.attribute" ARRAY = "l.attributes" COUNT = "{ [ g.Module_JSON ].JSON_Input_Element_Array( l.product, 'Attributes', l.attributes ) }">
+			<MvASSIGN NAME = "l.product_attribute"					VALUE = "">
+			<MvASSIGN NAME = "l.product_attribute:code"				VALUE = "">
+			<MvASSIGN NAME = "l.product_attribute:template_code"	VALUE = "">
+			<MvASSIGN NAME = "l.product_attribute:value"			VALUE = "">
+
+			<MvIF EXPR = "{ NOT [ g.Module_JSON ].JSON_Input_Element_Text( l.attribute, 'o', 'code',			l.product_attribute:code )			OR
+							NOT [ g.Module_JSON ].JSON_Input_Element_Text( l.attribute, 'o', 'template_code',	l.product_attribute:template_code )	OR
+							NOT [ g.Module_JSON ].JSON_Input_Element_Text( l.attribute, 'o', 'value',			l.product_attribute:value ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_InputErrors() }">
+			</MvIF>
+
+			<MvASSIGN NAME = "l.product_attribute_count"			VALUE = "{ miva_array_insert_var( l.product_attributes, l.product_attribute, -1 ) }">
+		</MvFOREACH>
+
+		<MvIF EXPR = "{ NOT [ g.Module_Library_Utilities ].Validate_Attributes( l.wishlist_product, 0, l.product_attributes, l.product_attribute_count, l.item_wishlistoptions, l.item_wishlistoption_count ) }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Element_FieldError( l.product, 'Attributes', 'Missing Required Attributes' ) }">
+		</MvIF>
+
+		<MvIF EXPR = "{ NOT [ g.Module_Feature_WSH_RT ].WishListItemAndOptions_InsertOrUpdate( l.wishlist, l.wishlist_product:id, l.quantity, l.item_wishlistoptions, l.item_wishlistoption_count ) }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Error( g.Error_Code, g.Error_Message ) }">
+		</MvIF>
+
+		<MvIF EXPR = "{ NOT ISNULL l.notes }">
+			<MvCOMMENT>
+			|
+			|	Need to get the correct WishlistItem ID
+			|
+			</MvCOMMENT>
+
+			<MvASSIGN NAME = "l.wishlist_item"			VALUE = "">
+			<MvASSIGN NAME = "l.wishlist_item:id"		VALUE = 0>
+			<MvASSIGN NAME = "l.wishlist_item:quantity"	VALUE = "{ l.quantity }">
+			<MvASSIGN NAME = "l.wishlist_item:notes"	VALUE = "{ l.notes }">
+
+			<MvFOREACH ITERATOR = "l.wishlistitem" ARRAY = "l.wishlistitems" COUNT = "{ [ g.Module_Feature_WSH_DB ].WishListItemList_Load_WishList_Product( l.wishlist:id, l.wishlist_product:id, l.wishlistitems ) }">
+				<MvASSIGN NAME = "l.wishlistoption_count" VALUE = "{ [ g.Module_Feature_WSH_DB ].WishListOptionList_Load_WishListItem( l.wishlistitem:id, l.wishlistoptions ) }">
+
+				<MvIF EXPR = "{ l.wishlistoption_count NE l.item_wishlistoption_count }">
+					<MvFOREACHCONTINUE>
+				</MvIF>
+
+				<MvFOREACH INDEX = "l.wishlistoption_pos" ITERATOR = "l.wishlistoption" ARRAY = "l.wishlistoptions" COUNT = "{ l.wishlistoption_count }">
+					<MvIF EXPR = "{ NOT miva_array_search( l.item_wishlistoptions, 1, l.option,
+														   '( l.wishlistoption:attr_id 		EQ l.option:attr_id ) 		AND
+															( l.wishlistoption:attmpat_id 	EQ l.option:attmpat_id ) 	AND
+															( l.wishlistoption:option_id 	EQ l.option:option_id ) 	AND
+															( l.wishlistoption:data 		EQ l.option:data ) 			AND
+															( l.wishlistoption:data_long 	EQ l.option:data_long )' ) }">
+						<MvFOREACHSTOP>
+					</MvIF>
+				</MvFOREACH>
+
+				<MvIF EXPR = "{ l.wishlistoption_pos GT l.wishlistoption_count }">
+					<MvASSIGN NAME = "l.wishlist_item:id"		VALUE = "{ l.wishlistitem:id }">
+					<MvASSIGN NAME = "l.wishlist_item:quantity"	VALUE = "{ l.wishlistitem:quantity }">
+					
+					<MvFOREACHSTOP>
+				</MvIF>
+			</MvFOREACH>
+
+			<MvIF EXPR = "{ l.wishlist_item:id EQ 0 }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Element_FieldError( l.product, 'Notes', 'Could not add notes for wishlist item.' ) }">
+			</MvIF>
+
+			<MvIF EXPR = "{ NOT [ g.Module_Feature_WSH_DB ].WishListItem_Update( l.wishlist_item ) }">
+				<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Element_FieldError( l.product, 'Notes', g.Error_Message ) }">
+			</MvIF>
+		</MvIF>
+
+	</MvFOREACH>
+
+	<MvFUNCTIONRETURN VALUE = "{ [ g.Module_JSON ].JSON_Response_Success() }">
 </MvFUNCTION>
